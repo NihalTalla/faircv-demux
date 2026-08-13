@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.env.*
+*.log
+
+# Large dataset
+FairCVdb.npy
+
+# Generated model weights
+results/models/
+
+# Reference paper (kept local, not committed)
+2009.07025v1.pdf

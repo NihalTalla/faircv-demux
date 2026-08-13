@@ -1,0 +1,458 @@
+========================================================================
+SECTION 1 — DATASET GROUND TRUTH
+========================================================================
+
+--- 1.1  All keys and array shapes ---
+  Profiles Train                                 dtype=float64       shape=(19200, 51)
+  Profiles Test                                  dtype=float64       shape=(4800, 51)
+  Bios Train                                     dtype=<U968         shape=(19200, 2)
+  Bios Test                                      dtype=<U968         shape=(4800, 2)
+  Names Train                                    dtype=<U20          shape=(19200,)
+  Names Test                                     dtype=<U20          shape=(4800,)
+  Blind Labels Train                             dtype=float64       shape=(19200,)
+  Blind Labels Test                              dtype=float64       shape=(4800,)
+  Biased Labels Train (Gender)                   dtype=float64       shape=(19200,)
+  Biased Labels Test (Gender)                    dtype=float64       shape=(4800,)
+  Biased Labels Train (Ethnicity)                dtype=float64       shape=(19200,)
+  Biased Labels Test (Ethnicity)                 dtype=float64       shape=(4800,)
+  Image List Train                               dtype=<U51          shape=(19200,)
+  Image List Test                                dtype=<U51          shape=(4800,)
+
+  Train profiles : (19200, 51)  (expected 19200 x 51)
+  Test  profiles : (4800, 51)  (expected  4800 x 51)
+  51 columns verified: True
+
+--- 1.2  Profile column 0..10 — unique values ---
+  col0 (script: ethnicity)             unique=[0.0, 1.0, 2.0]  counts=[6405, 6412, 6383]
+  col1 (script: gender)                unique=[0.0, 1.0]  counts=[9563, 9637]
+  col2 (script: occupation)            unique=[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]  counts=[1598, 1599, 1593, 1597, 1586, 1607, 2398, 2391, 2390, 2441]
+  col3 (script: suitability)           unique=[0.25, 0.5, 0.75, 1.0]  counts=[4790, 4831, 4790, 4789]
+  col4 (script: education)             unique=[0.2, 0.4, 0.6, 0.8, 1.0]  counts=[2508, 6000, 6920, 3078, 694]
+  col5 (script: experience)            unique=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0]  counts=[359, 2624, 6093, 6439, 3148, 537]
+  col6 (script: rec-letter)            unique=[0.0, 1.0]  counts=[17206, 1994]
+  col7 (script: availability)          unique=[0.2, 0.4, 0.6, 0.8, 1.0]  counts=[318, 528, 1609, 4219, 12526]
+  col8 (lang-1)                        unique=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0]  counts=[3170, 3252, 3175, 3211, 3490, 2902]
+  col9 (lang-2)                        unique=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0]  counts=[3267, 3177, 3133, 3207, 3448, 2968]
+  col10 (lang-3)                       unique=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0]  counts=[3147, 3152, 3248, 3181, 3606, 2866]
+
+--- 1.3  Claimed: col1 = gender (0=Male, 1=Female) ---
+  col1 unique values (train): [0.0, 1.0]
+  col1 counts       (train): [9563, 9637]
+  col1 unique values (test) : [0.0, 1.0]
+  col1 counts       (test) : [2437, 2363]
+  Contains only 0 and 1: True  [VERIFIED]
+
+--- 1.4  Claimed: col0 = ethnicity (0=Grp-A, 1=Grp-B, 2=Grp-C) ---
+  col0 unique values (train): [0.0, 1.0, 2.0]
+  col0 counts       (train): [6405, 6412, 6383]
+  col0 unique values (test) : [0.0, 1.0, 2.0]
+  col0 counts       (test) : [1595, 1588, 1617]
+  Contains exactly 0, 1, 2: True  [VERIFIED]
+
+  [NEEDS DOCUMENTATION]  'Grp-A','Grp-B','Grp-C' labels are INVENTED by the audit author.
+          FairCV documentation does not map integer codes to named ethnicities
+          in the dataset file itself.  These are labels of convenience only.
+
+--- 1.5  Label array statistics ---
+  Blind Train                   min=0.0000  median=0.4135  max=0.9232  n_zeros=1
+  Blind Test                    min=0.0380  median=0.4116  max=1.0000  n_zeros=0
+  Biased-Gender Train           min=0.0000  median=0.3659  max=0.8996  n_zeros=20
+  Biased-Gender Test            min=0.0000  median=0.3640  max=0.9430  n_zeros=6
+  Biased-Ethnicity Train        min=0.0000  median=0.4148  max=1.0000  n_zeros=15
+  Biased-Ethnicity Test         min=0.0000  median=0.4106  max=1.0000  n_zeros=5
+
+--- 1.6  Missing / NaN values ---
+  Profiles Train             NaN=0  Inf=0
+  Profiles Test              NaN=0  Inf=0
+  Blind Labels Train         NaN=0  Inf=0
+  Blind Labels Test          NaN=0  Inf=0
+
+--- 1.7  Train/test split consistency ---
+  Total profiles: 24000  (expected 24000) OK
+  Test fraction : 0.2000 (expected ~0.20)  OK
+  Ethnicity train dist: {np.float64(0.0): 6405, np.float64(1.0): 6412, np.float64(2.0): 6383}
+  Ethnicity test  dist: {np.float64(0.0): 1595, np.float64(1.0): 1588, np.float64(2.0): 1617}
+  Gender train dist: {np.float64(0.0): 9563, np.float64(1.0): 9637}
+  Gender test  dist: {np.float64(0.0): 2437, np.float64(1.0): 2363}
+
+--- 1.8  Columns 11-30 (face embedding) and 31-50 (blind face embedding) ---
+  Cols 11-30 shape: (19200, 20)  (should be 19200x20)
+  Cols 31-50 shape: (19200, 20)  (should be 19200x20)
+  Cols 11-30 value range: [-0.7213, 0.7665]
+  Cols 31-50 value range: [-0.4465, 0.3041]
+
+========================================================================
+SECTION 2 — VERIFY 'Group A/B/C' CLAIM
+========================================================================
+
+  Claim in audit: "Ethnicity: 0 = Group A, 1 = Group B, 2 = Group C"
+
+  FINDINGS:
+  - Values 0, 1, 2 VERIFIED to exist in the dataset (Section 1.4).
+  - Dataset file contains NO string labels mapping integers to ethnic names.
+  - FairCV paper (arXiv:2009.07025) states the dataset uses three ethnic groups
+    but does not define them as "Group A/B/C" — those names are fabricated.
+  - The paper's GitHub README describes ethnicity codes but does NOT use "Grp-A"
+    style labels.
+  - Classification: UNSUPPORTED — the integer values are real, the names are not
+    grounded in any external documentation accessible from the .npy file alone.
+
+========================================================================
+SECTION 3 — AUDIT THE AUDIT CODE (line-by-line)
+========================================================================
+
+3.1  Feature extraction
+  Script: CV_COLS = range(4, 11)   → cols 4,5,6,7,8,9,10  (7 features)
+  Script: FACE_COLS = range(11,31) → cols 11..30            (20 features)
+
+  Verification:
+  CV_COLS gives 7 columns: [4, 5, 6, 7, 8, 9, 10]
+  FACE_COLS gives 20 columns
+  CV+FACE gives 27 columns (script prints 27 — CORRECT)
+  Note: script comment says 'Face+CV feat: 27 columns' — matches.
+
+3.2  Protected attribute extraction
+  Script: gender_tr    = P_tr[:, 1].astype(int)   # col 1
+  Script: ethnicity_tr = P_tr[:, 0].astype(int)   # col 0
+  col1 (gender)    unique: [0, 1]  [VERIFIED]
+  col0 (ethnicity) unique: [0, 1, 2]  [VERIFIED]
+
+3.3  Label binarisation
+  BLIND_THR  = 0.413492  (median of training blind labels)
+  GENDER_THR = 0.365861  (median of training gender-biased labels)
+  ETH_THR    = 0.414762  (median of training ethnicity-biased labels)
+
+  Positive rates TRAIN: blind=0.5000  gender=0.5000  eth=0.5000
+  Positive rates TEST : blind=0.4929  gender=0.4946  eth=0.4885
+
+  [UNSUPPORTED]  M3/M4 models are evaluated against BIASED test labels.
+          TPR/FPR/PPV for M3 and M4 are computed relative to a biased
+          ground truth, not the true (merit-based) blind labels.
+          This makes those metrics uninterpretable as 'accuracy of selection'.
+          Comparing M3/M4 performance to M1/M2 is therefore misleading.
+
+3.4  KL divergence implementation review (lines 145-154)
+  Code uses scipy.special.rel_entr(p,q) which correctly implements
+  p*log(p/q) element-wise.  sum(rel_entr(p,q)) = KL(P||Q).
+  Adding 1e-9 before normalisation avoids log(0); the perturbation is
+  negligible (~50 * 1e-9 << typical histogram mass).
+  Implementation is CORRECT for the stated purpose.
+
+3.5  KL computed only between 'extreme' groups (lines 191-198)
+  For 2 groups (gender): idx_hi != idx_lo → KL between group 0 and group 1.
+  For 3 groups (ethnicity): KL between highest-SR and lowest-SR groups only.
+  This gives a valid worst-case pairwise KL but loses information about
+  the third group's distribution.  It is a valid choice but should be
+  disclosed; other pairs may differ meaningfully.
+
+3.6  KS test handling for 3-group ethnicity (lines 200-204)
+  Code:
+    if len(groups) == 2:
+        ks_stat, ks_p = ks_2samp(...)
+    else:
+        ks_stat, ks_p = float('nan'), float('nan')
+
+  [VERIFIED]  The code CORRECTLY skips KS for 3 groups.
+  [CODE BUG]   The NARRATIVE (Observation 3) says 'significant KS p-value' as
+          evidence for ethnicity. KS p-value is NaN for ethnicity; no KS
+          significance can be claimed for a 3-group attribute with this code.
+  Appropriate alternative for 3 groups: Kruskal-Wallis or one-way ANOVA.
+
+3.7  DIR ('minority / majority') definition (line 186)
+  Code: dir_ = sr_vals.min() / sr_vals.max()
+  This is CORRECT per the EEOC four-fifths rule: lowest-SR / highest-SR.
+  [UNSUPPORTED]  The narrative says 'minority SR / majority SR'.  'Minority' refers
+          to the demographic minority, not necessarily the group with the lowest
+          SR.  The code does not condition on actual demographic minority status.
+          Correct terminology: 'lowest-SR group / highest-SR group'.
+
+3.8  EOD sign convention (line 187)
+  Code: eod = tpr_vals.max() - tpr_vals.min()
+  This always produces a non-negative number.
+  The narrative says 'Positive = favoured group has higher recall', implying
+  a signed metric, but the value is always positive.  For 2 groups (gender)
+  this loses which group is favoured.
+  [CODE BUG]  The signed difference (e.g. TPR[male] - TPR[female]) is not computed.
+
+3.9  Equalized Odds (EO) computation (lines 188-189)
+  Code: eo = max(|TPR_max - TPR_min|, |FPR_max - FPR_min|)
+  This is the correct definition of equalized-odds violation: the larger of
+  the TPR gap and FPR gap.  CORRECT.
+
+3.10  Confusion matrix fallback (line 168)
+  Code: tn, fp, fn, tp = cm.ravel() if cm.size == 4 else (cm[0,0], 0, 0, 0)
+  If all predicted labels for a group are one class (e.g., all 0), sklearn's
+  confusion_matrix with labels=[0,1] still returns a 2x2 matrix (zeros in
+  the missing class rows/cols), so cm.size == 4 always when labels=[0,1].
+  The fallback is unreachable but harmless.  CORRECT (with caveat).
+
+3.11  Heatmap DIR colour direction (lines 357-364)
+  DIR is normalised along its column like all other metrics.
+  Higher DIR = better (less disparity), lower DIR = worse.
+  But the colormap is 'RdYlGn_r' with 0=low severity → green (good).
+  For DIR, higher values ARE better, so the normalisation makes the highest
+  DIR appear darkest (most severe), which is the OPPOSITE of correct.
+  The heatmap inverts the meaning of DIR visually.
+
+========================================================================
+SECTION 4 — MULTI-GROUP ETHNICITY SPECIAL AUDIT
+========================================================================
+
+4.1  KS test correctly suppressed for ethnicity (3 groups) — VERIFIED
+4.2  Narrative claim 'significant KS p-value' for M3/M4:
+
+  Gender KS p-values (independently computed):
+    M1-Fair (CV only)                           KS_stat=0.0275  p=3.1812e-01  [not significant]
+    M2-Multimodal (CV+Face)                     KS_stat=0.0316  p=1.7642e-01  [not significant]
+    M3-Gender-Biased (CV)                       KS_stat=0.0291  p=2.5380e-01  [not significant]
+    M4-Ethnicity-Biased (CV)                    KS_stat=0.0294  p=2.4270e-01  [not significant]
+
+  Ethnicity KS p-values (pairwise, since 3 groups):
+    M1-Fair (CV only)
+      KS(0vs1) p=5.964e-01  KS(0vs2) p=5.928e-01  KS(1vs2) p=9.861e-01
+      Kruskal-Wallis  stat=1.0115  p=6.0306e-01  not significant
+    M2-Multimodal (CV+Face)
+      KS(0vs1) p=6.266e-01  KS(0vs2) p=5.459e-01  KS(1vs2) p=9.879e-01
+      Kruskal-Wallis  stat=1.2416  p=5.3752e-01  not significant
+    M3-Gender-Biased (CV)
+      KS(0vs1) p=4.048e-01  KS(0vs2) p=7.919e-01  KS(1vs2) p=9.671e-01
+      Kruskal-Wallis  stat=0.9476  p=6.2263e-01  not significant
+    M4-Ethnicity-Biased (CV)
+      KS(0vs1) p=3.233e-07  KS(0vs2) p=1.908e-14  KS(1vs2) p=1.701e-03
+      Kruskal-Wallis  stat=74.1555  p=7.8948e-17  SIGNIFICANT
+
+  [INCORRECT]  Narrative Observation 3 claims 'significant KS p-value'.
+          No gender KS p-value is <0.05 for any model.
+          No ethnicity KS was computed at all (NaN).
+          This claim is FALSE and unsupported by the code's own output.
+
+========================================================================
+SECTION 5 — INDEPENDENTLY REPRODUCED METRICS FOR M1 (blind labels)
+========================================================================
+
+5.1  M1 — GENDER (independent computation)
+  Male        n= 2437  SR=0.4707  TPR=0.7674  FPR=0.1790  PPV=0.8082
+  Female      n= 2363  SR=0.4829  TPR=0.7798  FPR=0.1975  PPV=0.7914
+
+  Independent DPD  = +0.0122  (script reported: +0.0122)
+  Independent DIR  = 0.9747   (script reported:  0.9747)
+  Independent EOD  = +0.0124  (script reported: +0.0124)
+  Independent EO   = +0.0185   (script reported: +0.0185)
+  Independent KL   = 0.0183   (script reported:  0.0183)
+  Independent KS   stat=0.0275  p=3.1812e-01  (script reported: 0.0275 / 3.18e-01)
+
+  Match check:
+    DPD: |script - independent| = 0.000000  MATCH
+    DIR: |script - independent| = 0.000034  MATCH
+    EOD: |script - independent| = 0.000009  MATCH
+    EO: |script - independent| = 0.000003  MATCH
+    KL: |script - independent| = 0.000033  MATCH
+
+5.2  M1 — ETHNICITY (independent computation)
+  Grp-A       n= 1595  SR=0.4878  TPR=0.7923  FPR=0.1743  PPV=0.8239
+  Grp-B       n= 1588  SR=0.4698  TPR=0.7532  FPR=0.2029  PPV=0.7775
+  Grp-C       n= 1617  SR=0.4725  TPR=0.7738  FPR=0.1867  PPV=0.7971
+
+  Independent DPD  = +0.0180  (script reported: +0.0180)
+  Independent DIR  = 0.9631   (script reported:  0.9631)
+  Independent EOD  = +0.0391  (script reported: +0.0391)
+  Independent EO   = +0.0391   (script reported: +0.0391)
+  Independent KL   = 0.0295   (script reported:  0.0295)
+
+  Match check:
+    DPD: |script - independent| = 0.000001  MATCH
+    DIR: |script - independent| = 0.000004  MATCH
+    EOD: |script - independent| = 0.000011  MATCH
+    EO: |script - independent| = 0.000011  MATCH
+    KL: |script - independent| = 0.000047  MATCH
+
+5.3  M4-Ethnicity-Biased — all three ethnicity groups independently
+  Grp-A       n= 1595  SR=0.5429  TPR=0.6857  FPR=0.0703  PPV=0.9700
+  Grp-B       n= 1588  SR=0.4553  TPR=0.7275  FPR=0.2010  PPV=0.7718
+  Grp-C       n= 1617  SR=0.4187  TPR=0.9405  FPR=0.2729  PPV=0.4904
+
+  Independent DPD  = +0.1243  (script reported: +0.1243)
+  Independent DIR  = 0.7711   (script reported:  0.7711)
+  EEOC FAIL?  True  (script reported: FAIL)
+
+========================================================================
+SECTION 6 — NARRATIVE CLAIM VERIFICATION
+========================================================================
+
+Narrative Observation 1:
+  'M1 (CV-only, blind labels) achieves the lowest bias across all metrics'
+
+  Checking DPD across all models for GENDER:
+  M1-Fair (CV only)                           DPD_gender=0.0122  DPD_eth=0.0180  EOD_eth=0.0391
+  M2-Multimodal (CV+Face)                     DPD_gender=0.0143  DPD_eth=0.0193  EOD_eth=0.0415
+  M3-Gender-Biased (CV)                       DPD_gender=0.0125  DPD_eth=0.0168  EOD_eth=0.0667
+  M4-Ethnicity-Biased (CV)                    DPD_gender=0.0096  DPD_eth=0.1243  EOD_eth=0.2548
+
+  [INCORRECT]  M1 does NOT have the lowest DPD across ALL metrics and both attributes.
+          For gender EOD: M4 has lower EOD (0.011) than M1 (0.012).
+          Observation 1 is approximately correct for most metrics but technically
+          overstated; it should say 'lowest bias on most metrics' not 'all metrics'.
+
+Narrative Observation 2:
+  'M2 shows measurably higher DPD and KL than M1'
+
+  Checking independently computed KL for ETHNICITY:
+  M1 ethnicity KL = 0.0295  (script: 0.0295)
+  M2 ethnicity KL = 0.0255  (script: 0.0255)
+  M2 ethnicity KL > M1 ethnicity KL?  False
+  [INCORRECT]  For ETHNICITY, M2 has LOWER KL than M1 (0.0255 < 0.0295).
+          Observation 2 claim 'M2 shows higher KL than M1' is FALSE for ethnicity.
+
+Narrative Observation 3:
+  'M3 and M4 exhibit the largest disparities; the EEOC 80% rule is violated'
+
+  From independent computation:
+  M1-Fair (CV only)                           EEOC_gender=PASS  EEOC_ethnicity=PASS
+  M2-Multimodal (CV+Face)                     EEOC_gender=PASS  EEOC_ethnicity=PASS
+  M3-Gender-Biased (CV)                       EEOC_gender=PASS  EEOC_ethnicity=PASS
+  M4-Ethnicity-Biased (CV)                    EEOC_gender=PASS  EEOC_ethnicity=FAIL
+
+  [INCORRECT]  M3 PASSES the EEOC rule for BOTH gender and ethnicity.
+          Only M4/ethnicity FAILS.  Claiming "M3 and M4" violate the EEOC
+          rule is FACTUALLY INCORRECT.
+
+  Narrative Observation 3 — KS significance sub-claim:
+  'score distributions diverge sharply between groups (high KL, significant KS p-value)'
+
+  From Section 4 above: no gender KS p-value is < 0.05 for any model.
+  Ethnicity KS p-value is not computed (returned as NaN) by the script.
+  [INCORRECT]  The 'significant KS p-value' sub-claim is UNSUPPORTED AND FALSE.
+
+========================================================================
+SECTION 7 — COMPLETE BUG / ISSUE SUMMARY
+========================================================================
+
+  BUG-1  [CODE BUG]  @ Line 496
+         Narrative claims 'M3 and M4 violate the EEOC rule'. M3 
+         PASSES both gender and ethnicity DIR. Only M4-ethnicity 
+         FAILS (DIR=0.77). FALSE. 
+
+  BUG-2  [CODE BUG]  @ Line 496
+         Narrative claims 'significant KS p-value'. No KS p < 0.05 
+         exists in any model output. For ethnicity, KS is never 
+         computed. UNSUPPORTED AND FALSE. 
+
+  BUG-3  [CODE BUG]  @ Line 490
+         Narrative Obs-2: 'M2 shows higher KL than M1'. For 
+         ethnicity, M2 KL (0.0255) < M1 KL (0.0295). Claim is false 
+         for ethnicity. 
+
+  BUG-4  [CODE BUG]  @ Line 487
+         Narrative Obs-1: 'M1 achieves lowest bias ACROSS ALL 
+         METRICS'. M4 has lower gender EOD (0.011) than M1 (0.012). 
+         'All metrics' is overstated. 
+
+  BUG-5  [STATISTICALLY INVALID]  @ Lines 200-204
+         KS test is correctly suppressed for 3-group ethnicity but 
+         NO alternative (Kruskal-Wallis, chi-squared on selection 
+         counts) is substituted. Ethnicity significance is never 
+         tested. 
+
+  BUG-6  [STATISTICALLY INVALID]  @ Line 186
+         DIR narrative says 'minority SR / majority SR'. Code 
+         computes min-SR-group / max-SR-group. 'Minority' conflates 
+         demographic minority with lowest-selected group — these 
+         need not be the same. 
+
+  BUG-7  [CODE BUG]  @ Line 187
+         EOD is always positive (max-min). The direction of 
+         disparity (which group has higher TPR) is lost. The note 
+         'Positive = favoured group has higher recall' is 
+         meaningless as the sign is always positive. 
+
+  BUG-8  [UNSUPPORTED]  @ Line 16-17
+         'Group A/B/C' ethnicity labels are not grounded in the 
+         dataset or its documentation. The .npy file contains only 
+         integers 0/1/2. These labels are invented by the audit 
+         author. 
+
+  BUG-9  [UNSUPPORTED]  @ Lines 126-127
+         M3 and M4 evaluate against BIASED test labels. TPR/FPR/PPV 
+         are computed relative to a ground truth that was 
+         artificially constructed to discriminate. This makes 
+         per-group TPR/FPR for M3/M4 uninterpretable as selection 
+         quality. 
+
+  BUG-10  [CODE BUG]  @ Fig 2 / line 364
+         Heatmap normalisation applies RdYlGn_r to all metrics 
+         uniformly. DIR is inverted: a higher DIR (better) is 
+         coloured as more severe. Heatmap visually mis-represents 
+         DIR. 
+
+  BUG-11  [STATISTICALLY INVALID]  @ Lines 191-198
+         For 3-group ethnicity, KL is computed only for the 
+         highest-SR vs lowest-SR pair. The middle group is ignored. 
+         All pairwise KLs should be reported. 
+
+========================================================================
+SECTION 8 — REQUIRED CODE CHANGES
+========================================================================
+
+  R-1  Fix Narrative Obs-3: remove 'EEOC 80% rule is violated' for M3;
+       change to 'Only M4/ethnicity fails the EEOC 80% rule.'
+
+  R-2  Fix Narrative Obs-3: remove 'significant KS p-value' claim entirely;
+       replace with actual KS p-values from code output and note none are
+       significant at α=0.05.
+
+  R-3  Fix Narrative Obs-2: qualify the KL claim to 'for gender' only;
+       acknowledge M2 ethnicity KL is lower than M1.
+
+  R-4  Fix Narrative Obs-1: change 'all metrics' to 'most metrics'.
+
+  R-5  Add Kruskal-Wallis test for 3-group ethnicity and report it.
+
+  R-6  Change DIR narrative label from 'minority SR / majority SR' to
+       'lowest-SR group / highest-SR group'.
+
+  R-7  Compute signed EOD: TPR(group with higher ID) - TPR(group with lower ID),
+       or at minimum report WHICH group has higher TPR per metric.
+
+  R-8  Add a disclaimer on 'Group A/B/C' labels stating these are arbitrary;
+       or source the actual demographic label mapping from the paper.
+
+  R-9  Add a note that M3/M4 fairness metrics (TPR/FPR/PPV) are computed
+       against biased labels, limiting their interpretability.
+
+  R-10 Fix Fig 2 heatmap for DIR: invert the colour scale for DIR, or
+       exclude DIR from the heatmap and plot it separately.
+
+  R-11 Report all pairwise KL values for ethnicity (3 pairs) rather than
+       only the extreme pair.
+
+========================================================================
+SECTION 9 — FINAL VERDICT
+========================================================================
+
+  NUMERICS:         The raw computed numbers (DPD, DIR, EOD, EO, KL for M1)
+                    match the script's output within 5e-4 tolerance.
+                    The underlying mathematics is CORRECT.
+
+  NARRATIVE:        Contains THREE false or unsupported claims (Obs-1 overstated,
+                    Obs-2 wrong for ethnicity, Obs-3 two errors).  The 'significant
+                    KS p-value' claim in particular has NO support from the code.
+
+  STATISTICAL:      The KS-suppression for ethnicity is correct but leaves a gap:
+                    no significance test is reported for 3-group comparisons.
+                    DIR terminology conflates 'minority' with 'lowest-selected'.
+
+  DESIGN:           M3/M4 evaluated against biased labels — a conceptual flaw
+                    that makes their per-group TPR/FPR/PPV misleading.
+
+  VISUALISATION:    Heatmap DIR colour scale is inverted.
+
+  LABEL CLAIMS:     'Group A/B/C' names are unsupported by the dataset.
+                    'Gender 0=Male, 1=Female' is consistent with dataset values
+                    but not verified from the dataset's own documentation here.
+
+  OVERALL VERDICT:  The audit script is NUMERICALLY SOUND but NARRATIVELY FLAWED.
+                    It should NOT be published or presented as-is.
+                    11 specific issues are identified; 3 are incorrect claims,
+                    5 are statistical/design issues, 3 are unsupported labels or
+                    missing disclosures.
+

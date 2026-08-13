@@ -1,0 +1,410 @@
+==========================================================================
+FairCV Bias Audit v2 (corrected implementation)
+==========================================================================
+
+[1/8] Loading FairCVdb.npy …
+  Train: 19,200 profiles | Test: 4,800 profiles
+
+[2/8] Feature & label documentation (ground truth) …
+  Feature groups (verified vs FairCVdb README):
+    col0-1   : ethnicity (G1/G2/G3), gender (Male/Female)  -> protected, excluded
+    col2-3   : occupation (10 cat.), suitability (4 levels) -> CV9 arms only (R-12)
+    col4-10  : 7 competencies (education … 3 languages)     -> CV7 (all models)
+    col11-30 : face embedding (20-d, norm 1)                -> M2/M6
+    col31-50 : blind face embedding (SensitiveNets-style)   -> EXCLUDED
+    NOTE: cols 31-50 are degenerate in this file (per-col std ~3.2e-06, all rows within 1e-4 of a constant vector) -> unusable as features; no SensitiveNets control possible (N-2).
+
+  Label binarisation (R-4 / N-4):
+    threshold = train median, label >= threshold -> hired.
+    blind: 0.4135 | gender: 0.3659 | ethnicity: 0.4148
+    NOTE: 'above median = hired' is an audit decision; the FairCV papers
+    evaluate with top-N score screening. This binarisation is an artificial
+    outcome and is reported as such.
+    hired rate (test): blind=0.4929 gender=0.4946 ethnicity=0.4885
+
+  Verified bias construction in the data (R-14):
+    Gender-biased    Male     mean(ratio) = 1.0000
+    Gender-biased    Female   mean(ratio) = 0.7502
+    Ethnicity-biased G1       mean(ratio) = 1.2481
+    Ethnicity-biased G2       mean(ratio) = 1.0000
+    Ethnicity-biased G3       mean(ratio) = 0.7478
+    -> gender-biased labels penalise Female x0.75; ethnicity-biased
+       labels penalise G3 x0.75 and boost G1 x1.25.
+
+[3/8] Training classifiers …
+  M1-Fair (CV7)                          acc=0.793  AUC=0.888  F1=0.786
+  M2-Multimodal (CV7+Face)               acc=0.795  AUC=0.888  F1=0.789
+  M3-Gender-Biased (CV7)                 acc=0.766  AUC=0.852  F1=0.759
+  M4-Ethnicity-Biased (CV7)              acc=0.760  AUC=0.843  F1=0.750
+  M5-Robust (CV9)                        acc=0.966  AUC=0.996  F1=0.965
+  M6-Robust (CV9+Face)                   acc=0.965  AUC=0.996  F1=0.965
+  NOTE (R-9): M1..M4 performance values are NOT directly comparable because
+  M3/M4 train on different (artificially biased) label sets, and M3/M4 are
+  evaluated against those biased labels.
+
+[4/8] Computing fairness metrics + statistical tests …
+  done.
+  NOTE: bootstrap CIs for DPD/DIR/EOD/EO contain the point estimates. The
+  histogram-KL CIs are upward-biased relative to the plug-in point estimate
+  (standard for plug-in KL on resampled histograms); read KL CIs as
+  conservative upper ranges.
+  NOTE: KL is directed (P||Q). 'KL (extreme SR pair)' = KL(best-SR group ||
+  worst-SR group); 'KL mean (all pairs)' averages the i<j directed pairs.
+
+[5/8] Audit report …
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  M1-Fair (CV7)   (features=cv7, labels=blind)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Protected attribute: GENDER
+──────────────────────────────────────────────────────────────────────────
+  Group           N      SR     TPR     FPR     PPV  meanScore
+  --------------------------------------------------------------
+  Male         2437   0.471   0.767   0.179   0.808      0.482
+  Female       2363   0.483   0.780   0.198   0.791      0.491
+
+  DPD = +0.0122   (0 = perfect parity)
+  DIR = 0.9747   = worst-group SR / best-group SR  (Male / Female)  [EEOC >= 0.80 -> PASS]
+  EOD = +0.0124   (magnitude; highest TPR group = Female)
+  EO  = +0.0185   (0 = perfect)
+  KL (extreme SR pair) = 0.0183   KL mean (all pairs) = 0.0198
+  Pairwise KL: Male-Female=0.0198
+  KS Male vs Female     stat=0.0275  p=3.181e-01  p_holm=3.181e-01  [ns]
+  chi2 (group x hired) stat=0.6678  p=4.138e-01  [ns]
+  Effect sizes: Cohen's d=0.026  Cohen's h=0.024  (extreme SR pair)
+  Bootstrap 95% CI (n=2000): DPD [0.0007, 0.0405]  DIR [0.9189, 0.9986]  EOD [0.0007, 0.0462]  EO [0.0048, 0.0539]  KL [0.0270, 0.0534]
+
+  Protected attribute: ETHNICITY
+──────────────────────────────────────────────────────────────────────────
+  Group           N      SR     TPR     FPR     PPV  meanScore
+  --------------------------------------------------------------
+  G1           1595   0.488   0.792   0.174   0.824      0.493
+  G2           1588   0.470   0.753   0.203   0.777      0.482
+  G3           1617   0.472   0.774   0.187   0.797      0.484
+
+  DPD = +0.0180   (0 = perfect parity)
+  DIR = 0.9631   = worst-group SR / best-group SR  (G2 / G1)  [EEOC >= 0.80 -> PASS]
+  EOD = +0.0391   (magnitude; highest TPR group = G1)
+  EO  = +0.0391   (0 = perfect)
+  KL (extreme SR pair) = 0.0295   KL mean (all pairs) = 0.0486
+  Pairwise KL: G1-G2=0.0295, G1-G3=0.0574, G2-G3=0.0588
+  KS G1 vs G2           stat=0.0269  p=5.964e-01  p_holm=1.000e+00  [ns]
+  KS G1 vs G3           stat=0.0269  p=5.928e-01  p_holm=1.000e+00  [ns]
+  KS G2 vs G3           stat=0.0158  p=9.861e-01  p_holm=1.000e+00  [ns]
+  Kruskal-Wallis stat=1.0115  p=6.031e-01  [ns]
+  chi2 (group x hired) stat=1.2050  p=5.474e-01  [ns]
+  Effect sizes: Cohen's d=0.034  Cohen's h=0.036  (extreme SR pair)
+  Bootstrap 95% CI (n=2000): DPD [0.0052, 0.0575]  DIR [0.8869, 0.9891]  EOD [0.0111, 0.0824]  EO [0.0205, 0.0837]  KL [0.0420, 0.1367]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  M2-Multimodal (CV7+Face)   (features=cv7+face, labels=blind)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Protected attribute: GENDER
+──────────────────────────────────────────────────────────────────────────
+  Group           N      SR     TPR     FPR     PPV  meanScore
+  --------------------------------------------------------------
+  Male         2437   0.470   0.768   0.177   0.810      0.481
+  Female       2363   0.484   0.784   0.196   0.794      0.492
+
+  DPD = +0.0143   (0 = perfect parity)
+  DIR = 0.9705   = worst-group SR / best-group SR  (Male / Female)  [EEOC >= 0.80 -> PASS]
+  EOD = +0.0159   (magnitude; highest TPR group = Female)
+  EO  = +0.0193   (0 = perfect)
+  KL (extreme SR pair) = 0.0187   KL mean (all pairs) = 0.0190
+  Pairwise KL: Male-Female=0.0190
+  KS Male vs Female     stat=0.0316  p=1.764e-01  p_holm=1.764e-01  [ns]
+  chi2 (group x hired) stat=0.9257  p=3.360e-01  [ns]
+  Effect sizes: Cohen's d=0.031  Cohen's h=0.029  (extreme SR pair)
+  Bootstrap 95% CI (n=2000): DPD [0.0006, 0.0430]  DIR [0.9144, 0.9988]  EOD [0.0010, 0.0526]  EO [0.0056, 0.0564]  KL [0.0264, 0.0546]
+
+  Protected attribute: ETHNICITY
+──────────────────────────────────────────────────────────────────────────
+  Group           N      SR     TPR     FPR     PPV  meanScore
+  --------------------------------------------------------------
+  G1           1595   0.490   0.796   0.174   0.825      0.494
+  G2           1588   0.470   0.755   0.203   0.778      0.483
+  G3           1617   0.471   0.776   0.181   0.803      0.483
+
+  DPD = +0.0193   (0 = perfect parity)
+  DIR = 0.9607   = worst-group SR / best-group SR  (G2 / G1)  [EEOC >= 0.80 -> PASS]
+  EOD = +0.0415   (magnitude; highest TPR group = G1)
+  EO  = +0.0415   (0 = perfect)
+  KL (extreme SR pair) = 0.0255   KL mean (all pairs) = 0.0184
+  Pairwise KL: G1-G2=0.0255, G1-G3=0.0144, G2-G3=0.0152
+  KS G1 vs G2           stat=0.0263  p=6.266e-01  p_holm=1.000e+00  [ns]
+  KS G1 vs G3           stat=0.0279  p=5.459e-01  p_holm=1.000e+00  [ns]
+  KS G2 vs G3           stat=0.0156  p=9.879e-01  p_holm=1.000e+00  [ns]
+  Kruskal-Wallis stat=1.2416  p=5.375e-01  [ns]
+  chi2 (group x hired) stat=1.5642  p=4.575e-01  [ns]
+  Effect sizes: Cohen's d=0.035  Cohen's h=0.039  (extreme SR pair)
+  Bootstrap 95% CI (n=2000): DPD [0.0056, 0.0579]  DIR [0.8862, 0.9882]  EOD [0.0120, 0.0818]  EO [0.0228, 0.0828]  KL [0.0383, 0.0806]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  M3-Gender-Biased (CV7)   (features=cv7, labels=gender-bias)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Protected attribute: GENDER
+──────────────────────────────────────────────────────────────────────────
+  Group           N      SR     TPR     FPR     PPV  meanScore
+  --------------------------------------------------------------
+  Male         2437   0.468   0.675   0.107   0.917      0.484
+  Female       2363   0.481   0.873   0.271   0.633      0.492
+
+  DPD = +0.0125   (0 = perfect parity)
+  DIR = 0.9739   = worst-group SR / best-group SR  (Male / Female)  [EEOC >= 0.80 -> PASS]
+  EOD = +0.1977   (magnitude; highest TPR group = Female)
+  EO  = +0.1977   (0 = perfect)
+  KL (extreme SR pair) = 0.0192   KL mean (all pairs) = 0.0197
+  Pairwise KL: Male-Female=0.0197
+  KS Male vs Female     stat=0.0291  p=2.538e-01  p_holm=2.538e-01  [ns]
+  chi2 (group x hired) stat=0.7079  p=4.001e-01  [ns]
+  Effect sizes: Cohen's d=0.025  Cohen's h=0.025  (extreme SR pair)
+  Bootstrap 95% CI (n=2000): DPD [0.0006, 0.0436]  DIR [0.9121, 0.9987]  EOD [0.1645, 0.2314]  EO [0.1695, 0.2314]  KL [0.0280, 0.0560]
+
+  Protected attribute: ETHNICITY
+──────────────────────────────────────────────────────────────────────────
+  Group           N      SR     TPR     FPR     PPV  meanScore
+  --------------------------------------------------------------
+  G1           1595   0.484   0.779   0.205   0.782      0.493
+  G2           1588   0.467   0.713   0.229   0.752      0.483
+  G3           1617   0.472   0.739   0.200   0.790      0.487
+
+  DPD = +0.0168   (0 = perfect parity)
+  DIR = 0.9654   = worst-group SR / best-group SR  (G2 / G1)  [EEOC >= 0.80 -> PASS]
+  EOD = +0.0667   (magnitude; highest TPR group = G1)
+  EO  = +0.0667   (0 = perfect)
+  KL (extreme SR pair) = 0.0301   KL mean (all pairs) = 0.0276
+  Pairwise KL: G1-G2=0.0301, G1-G3=0.0267, G2-G3=0.0260
+  KS G1 vs G2           stat=0.0313  p=4.048e-01  p_holm=1.000e+00  [ns]
+  KS G1 vs G3           stat=0.0227  p=7.919e-01  p_holm=1.000e+00  [ns]
+  KS G2 vs G3           stat=0.0172  p=9.671e-01  p_holm=1.000e+00  [ns]
+  Kruskal-Wallis stat=0.9476  p=6.226e-01  [ns]
+  chi2 (group x hired) stat=0.9580  p=6.194e-01  [ns]
+  Effect sizes: Cohen's d=0.032  Cohen's h=0.034  (extreme SR pair)
+  Bootstrap 95% CI (n=2000): DPD [0.0049, 0.0550]  DIR [0.8903, 0.9899]  EOD [0.0287, 0.1110]  EO [0.0347, 0.1110]  KL [0.0433, 0.1671]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  M4-Ethnicity-Biased (CV7)   (features=cv7, labels=eth-bias)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Protected attribute: GENDER
+──────────────────────────────────────────────────────────────────────────
+  Group           N      SR     TPR     FPR     PPV  meanScore
+  --------------------------------------------------------------
+  Male         2437   0.467   0.743   0.211   0.766      0.485
+  Female       2363   0.477   0.732   0.226   0.761      0.492
+
+  DPD = +0.0096   (0 = perfect parity)
+  DIR = 0.9800   = worst-group SR / best-group SR  (Male / Female)  [EEOC >= 0.80 -> PASS]
+  EOD = +0.0113   (magnitude; highest TPR group = Male)
+  EO  = +0.0146   (0 = perfect)
+  KL (extreme SR pair) = 0.0257   KL mean (all pairs) = 0.0247
+  Pairwise KL: Male-Female=0.0247
+  KS Male vs Female     stat=0.0294  p=2.427e-01  p_holm=2.427e-01  [ns]
+  chi2 (group x hired) stat=0.4023  p=5.259e-01  [ns]
+  Effect sizes: Cohen's d=0.025  Cohen's h=0.019  (extreme SR pair)
+  Bootstrap 95% CI (n=2000): DPD [0.0006, 0.0373]  DIR [0.9243, 0.9988]  EOD [0.0007, 0.0467]  EO [0.0042, 0.0531]  KL [0.0323, 0.0635]
+
+  Protected attribute: ETHNICITY
+──────────────────────────────────────────────────────────────────────────
+  Group           N      SR     TPR     FPR     PPV  meanScore
+  --------------------------------------------------------------
+  G1           1595   0.543   0.686   0.070   0.970      0.536
+  G2           1588   0.455   0.728   0.201   0.772      0.482
+  G3           1617   0.419   0.941   0.273   0.490      0.448
+
+  DPD = +0.1243   (0 = perfect parity)
+  DIR = 0.7711   = worst-group SR / best-group SR  (G3 / G1)  [EEOC >= 0.80 -> FAIL]
+  EOD = +0.2548   (magnitude; highest TPR group = G3)
+  EO  = +0.2548   (0 = perfect)
+  KL (extreme SR pair) = 0.0775   KL mean (all pairs) = 0.0597
+  Pairwise KL: G1-G2=0.0617, G1-G3=0.0775, G2-G3=0.0398
+  KS G1 vs G2           stat=0.0988  p=3.233e-07  p_holm=6.466e-07  [SIGNIFICANT]
+  KS G1 vs G3           stat=0.1413  p=1.908e-14  p_holm=5.724e-14  [SIGNIFICANT]
+  KS G2 vs G3           stat=0.0661  p=1.701e-03  p_holm=1.701e-03  [SIGNIFICANT]
+  Kruskal-Wallis stat=74.1555  p=7.895e-17  [SIGNIFICANT]
+  chi2 (group x hired) stat=52.4414  p=4.097e-12  [SIGNIFICANT]
+  Effect sizes: Cohen's d=0.298  Cohen's h=0.249  (extreme SR pair)
+  Bootstrap 95% CI (n=2000): DPD [0.0905, 0.1573]  DIR [0.7180, 0.8282]  EOD [0.2187, 0.2894]  EO [0.2200, 0.2894]  KL [0.0814, 0.1438]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  M5-Robust (CV9)   (features=cv9, labels=blind)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Protected attribute: GENDER
+──────────────────────────────────────────────────────────────────────────
+  Group           N      SR     TPR     FPR     PPV  meanScore
+  --------------------------------------------------------------
+  Male         2437   0.488   0.959   0.025   0.974      0.494
+  Female       2363   0.484   0.959   0.028   0.970      0.490
+
+  DPD = +0.0038   (0 = perfect parity)
+  DIR = 0.9923   = worst-group SR / best-group SR  (Female / Male)  [EEOC >= 0.80 -> PASS]
+  EOD = +0.0001   (magnitude; highest TPR group = Male)
+  EO  = +0.0030   (0 = perfect)
+  KL (extreme SR pair) = 0.0235   KL mean (all pairs) = 0.0235
+  Pairwise KL: Male-Female=0.0235
+  KS Male vs Female     stat=0.0191  p=7.610e-01  p_holm=7.610e-01  [ns]
+  chi2 (group x hired) stat=0.0538  p=8.165e-01  [ns]
+  Effect sizes: Cohen's d=0.008  Cohen's h=0.008  (extreme SR pair)
+  Bootstrap 95% CI (n=2000): DPD [0.0005, 0.0331]  DIR [0.9345, 0.9991]  EOD [0.0002, 0.0183]  EO [0.0016, 0.0189]  KL [0.0435, 0.2889]
+
+  Protected attribute: ETHNICITY
+──────────────────────────────────────────────────────────────────────────
+  Group           N      SR     TPR     FPR     PPV  meanScore
+  --------------------------------------------------------------
+  G1           1595   0.501   0.960   0.028   0.972      0.506
+  G2           1588   0.478   0.958   0.026   0.972      0.484
+  G3           1617   0.479   0.957   0.027   0.972      0.485
+
+  DPD = +0.0230   (0 = perfect parity)
+  DIR = 0.9541   = worst-group SR / best-group SR  (G2 / G1)  [EEOC >= 0.80 -> PASS]
+  EOD = +0.0036   (magnitude; highest TPR group = G1)
+  EO  = +0.0036   (0 = perfect)
+  KL (extreme SR pair) = 0.1870   KL mean (all pairs) = 0.1826
+  Pairwise KL: G1-G2=0.1870, G1-G3=0.2079, G2-G3=0.1530
+  KS G1 vs G2           stat=0.0311  p=4.129e-01  p_holm=1.000e+00  [ns]
+  KS G1 vs G3           stat=0.0305  p=4.329e-01  p_holm=1.000e+00  [ns]
+  KS G2 vs G3           stat=0.0193  p=9.185e-01  p_holm=1.000e+00  [ns]
+  Kruskal-Wallis stat=1.9406  p=3.790e-01  [ns]
+  chi2 (group x hired) stat=2.1282  p=3.450e-01  [ns]
+  Effect sizes: Cohen's d=0.046  Cohen's h=0.046  (extreme SR pair)
+  Bootstrap 95% CI (n=2000): DPD [0.0062, 0.0614]  DIR [0.8810, 0.9874]  EOD [0.0022, 0.0275]  EO [0.0055, 0.0279]  KL [0.1793, 0.6202]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  M6-Robust (CV9+Face)   (features=cv9+face, labels=blind)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Protected attribute: GENDER
+──────────────────────────────────────────────────────────────────────────
+  Group           N      SR     TPR     FPR     PPV  meanScore
+  --------------------------------------------------------------
+  Male         2437   0.490   0.959   0.028   0.971      0.493
+  Female       2363   0.486   0.960   0.030   0.969      0.491
+
+  DPD = +0.0041   (0 = perfect parity)
+  DIR = 0.9916   = worst-group SR / best-group SR  (Female / Male)  [EEOC >= 0.80 -> PASS]
+  EOD = +0.0008   (magnitude; highest TPR group = Female)
+  EO  = +0.0014   (0 = perfect)
+  KL (extreme SR pair) = 0.0180   KL mean (all pairs) = 0.0180
+  Pairwise KL: Male-Female=0.0180
+  KS Male vs Female     stat=0.0170  p=8.708e-01  p_holm=8.708e-01  [ns]
+  chi2 (group x hired) stat=0.0660  p=7.973e-01  [ns]
+  Effect sizes: Cohen's d=0.006  Cohen's h=0.008  (extreme SR pair)
+  Bootstrap 95% CI (n=2000): DPD [0.0004, 0.0329]  DIR [0.9346, 0.9993]  EOD [0.0002, 0.0187]  EO [0.0015, 0.0193]  KL [0.0324, 0.2227]
+
+  Protected attribute: ETHNICITY
+──────────────────────────────────────────────────────────────────────────
+  Group           N      SR     TPR     FPR     PPV  meanScore
+  --------------------------------------------------------------
+  G1           1595   0.502   0.960   0.029   0.971      0.506
+  G2           1588   0.482   0.961   0.031   0.967      0.486
+  G3           1617   0.481   0.958   0.028   0.970      0.484
+
+  DPD = +0.0210   (0 = perfect parity)
+  DIR = 0.9580   = worst-group SR / best-group SR  (G3 / G1)  [EEOC >= 0.80 -> PASS]
+  EOD = +0.0030   (magnitude; highest TPR group = G2)
+  EO  = +0.0030   (0 = perfect)
+  KL (extreme SR pair) = 0.1033   KL mean (all pairs) = 0.1720
+  Pairwise KL: G1-G2=0.2669, G1-G3=0.1033, G2-G3=0.1457
+  KS G1 vs G2           stat=0.0267  p=6.095e-01  p_holm=1.000e+00  [ns]
+  KS G1 vs G3           stat=0.0313  p=3.995e-01  p_holm=1.000e+00  [ns]
+  KS G2 vs G3           stat=0.0149  p=9.927e-01  p_holm=1.000e+00  [ns]
+  Kruskal-Wallis stat=1.4196  p=4.917e-01  [ns]
+  chi2 (group x hired) stat=1.7863  p=4.094e-01  [ns]
+  Effect sizes: Cohen's d=0.045  Cohen's h=0.042  (extreme SR pair)
+  Bootstrap 95% CI (n=2000): DPD [0.0065, 0.0585]  DIR [0.8872, 0.9868]  EOD [0.0020, 0.0262]  EO [0.0054, 0.0272]  KL [0.1126, 0.5670]
+
+==========================================================================
+FINDINGS (computed from results, not hardcoded)
+==========================================================================
+
+EEOC (80% rule) verdicts — DIR = worst-group SR / best-group SR:
+  Model                              gender DIR      eth DIR  verdict
+  M1-Fair (CV7)                          0.9747       0.9631  gender=PASS | ethnicity=PASS
+  M2-Multimodal (CV7+Face)               0.9705       0.9607  gender=PASS | ethnicity=PASS
+  M3-Gender-Biased (CV7)                 0.9739       0.9654  gender=PASS | ethnicity=PASS
+  M4-Ethnicity-Biased (CV7)              0.9800       0.7711  gender=PASS | ethnicity=FAIL
+  M5-Robust (CV9)                        0.9923       0.9541  gender=PASS | ethnicity=PASS
+  M6-Robust (CV9+Face)                   0.9916       0.9580  gender=PASS | ethnicity=PASS
+
+Lowest-disparity model per attribute/metric:
+  gender     DPD          lowest = M5-Robust (CV9)              (0.0038) (robustness arm)
+  gender     EOD          lowest = M5-Robust (CV9)              (0.0001) (robustness arm)
+  gender     KL_extreme   lowest = M6-Robust (CV9+Face)         (0.0180) (robustness arm)
+  ethnicity  DPD          lowest = M3-Gender-Biased (CV7)       (0.0168)
+  ethnicity  EOD          lowest = M6-Robust (CV9+Face)         (0.0030) (robustness arm)
+  ethnicity  KL_extreme   lowest = M2-Multimodal (CV7+Face)     (0.0255)
+
+Proxy comparison — M1 (CV7, blind) vs M2 (CV7+Face, blind), same labels:
+  gender     DPD 0.0122 -> 0.0143 (delta +0.0021, increased); KL 0.0183 -> 0.0187 (delta +0.0004, increased); DPD CIs overlap: yes
+  ethnicity  DPD 0.0180 -> 0.0193 (delta +0.0013, increased); KL 0.0295 -> 0.0255 (delta -0.0040, decreased); DPD CIs overlap: yes
+  Wording: 'Adding face embeddings was ASSOCIATED with the changes above under
+  this evaluation setup.' This is an association, not a demonstrated causal
+  mechanism (the labels are identical; only the features differ).
+
+Label-bias comparison (same CV7 features, different training labels):
+  gender   : DPD 0.0122 -> 0.0125 (delta +0.0003) with gender-biased labels (female x0.75 penalty)
+  ethnicity: DPD 0.0180 -> 0.1243 (delta +0.1063) with ethnicity-biased labels (G3 x0.75 / G1 x1.25)
+  Caveat (R-9): M3/M4 TPR/FPR/PPV are computed against artificially biased
+  ground truth; only selection-rate (SR) based metrics are comparable to M1/M2.
+
+Score-distribution significance (Holm-adjusted within each model x attribute block):
+  M1-Fair (CV7)                          gender: KS p_holm=3.18e-01 (ns)  ethnicity: KW p=6.03e-01 (ns)
+  M2-Multimodal (CV7+Face)               gender: KS p_holm=1.76e-01 (ns)  ethnicity: KW p=5.38e-01 (ns)
+  M3-Gender-Biased (CV7)                 gender: KS p_holm=2.54e-01 (ns)  ethnicity: KW p=6.23e-01 (ns)
+  M4-Ethnicity-Biased (CV7)              gender: KS p_holm=2.43e-01 (ns)  ethnicity: KW p=7.89e-17 (sig)
+  M5-Robust (CV9)                        gender: KS p_holm=7.61e-01 (ns)  ethnicity: KW p=3.79e-01 (ns)
+  M6-Robust (CV9+Face)                   gender: KS p_holm=8.71e-01 (ns)  ethnicity: KW p=4.92e-01 (ns)
+
+Robustness arms (full CV9 feature set incl. occupation + suitability):
+  M5 (CV9, blind): gender DPD=0.0038  ethnicity DPD=0.0230  acc=0.966  AUC=0.996  (vs M1 acc=0.793)
+  M6 (CV9+Face, blind): gender DPD=0.0041  ethnicity DPD=0.0210
+  Interpretation: adding occupation/suitability to the CV set can materially
+  change both performance and disparity; M1-M4 conclusions should be read as
+  specific to the CV7 feature set.
+
+Uncertainty (bootstrap 95% CIs, n=2000):
+  Model                            attr       DPD CI               DIR CI              
+  M1-Fair (CV7)                    gender     [0.0007, 0.0405]       [0.9189, 0.9986]
+  M1-Fair (CV7)                    ethnicity  [0.0052, 0.0575]       [0.8869, 0.9891]
+  M2-Multimodal (CV7+Face)         gender     [0.0006, 0.0430]       [0.9144, 0.9988]
+  M2-Multimodal (CV7+Face)         ethnicity  [0.0056, 0.0579]       [0.8862, 0.9882]
+  M3-Gender-Biased (CV7)           gender     [0.0006, 0.0436]       [0.9121, 0.9987]
+  M3-Gender-Biased (CV7)           ethnicity  [0.0049, 0.0550]       [0.8903, 0.9899]
+  M4-Ethnicity-Biased (CV7)        gender     [0.0006, 0.0373]       [0.9243, 0.9988]
+  M4-Ethnicity-Biased (CV7)        ethnicity  [0.0905, 0.1573]       [0.7180, 0.8282]
+  M5-Robust (CV9)                  gender     [0.0005, 0.0331]       [0.9345, 0.9991]
+  M5-Robust (CV9)                  ethnicity  [0.0062, 0.0614]       [0.8810, 0.9874]
+  M6-Robust (CV9+Face)             gender     [0.0004, 0.0329]       [0.9346, 0.9993]
+  M6-Robust (CV9+Face)             ethnicity  [0.0065, 0.0585]       [0.8872, 0.9868]
+
+[6/8] Saving figures …
+  Saved results/fig1_selection_rates.png
+  Saved results/fig2_fairness_heatmap.png
+  Saved results/fig3_score_distributions.png
+  Saved results/fig4_feature_weights.png
+  Saved results/fig5_bootstrap_cis.png
+
+[7/8] Exporting machine-readable results …
+  Saved results/metrics.csv             (12 rows)
+  Saved results/statistical_tests.csv   (42 rows)
+  Saved results/per_group_metrics.csv   (30 rows)
+
+[8/8] Scope & limitations (R-14):
+  - This experiment uses ONLY the numeric profile block (cols 0-10, 11-30).
+    Bios (text), Names, and Image List are out of scope, as are raw images
+    (not present in this folder).
+  - The blind-face block (cols 31-50) is a constant vector in this file and
+    cannot be used as a SensitiveNets-style control.
+  - Binarised 'hired' labels are an audit decision (median split), not the
+    papers' top-N screening protocol.
+  - All models are regularised logistic regressions on standardised features;
+    conclusions are specific to this model class and the CV7/CV9 feature sets.
+  - Findings describe associations under a synthetic testbed; they do not
+    generalise to real hiring systems.
+
+Audit v2 complete. Outputs in 'results/'.

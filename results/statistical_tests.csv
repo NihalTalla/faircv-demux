@@ -1,0 +1,43 @@
+model,attribute,test,comparison,statistic,p_value,p_adjusted,significant_0.05
+M1-Fair (CV7),gender,KS-2samp,Male vs Female,0.02745704664876079,0.3181152313880179,0.3181152313880179,False
+M1-Fair (CV7),gender,chi2-selection,group x hired,0.6677637533990303,0.4138323524315346,,False
+M1-Fair (CV7),ethnicity,KS-2samp,G1 vs G2,0.02693595382295113,0.5964438808038566,1.0,False
+M1-Fair (CV7),ethnicity,KS-2samp,G1 vs G3,0.02689953724436483,0.5928184888938801,1.0,False
+M1-Fair (CV7),ethnicity,KS-2samp,G2 vs G3,0.0157528090237698,0.9860825825112381,1.0,False
+M1-Fair (CV7),ethnicity,Kruskal-Wallis,all groups,1.0114856411185453,0.6030574455386306,,False
+M1-Fair (CV7),ethnicity,chi2-selection,group x hired,1.2049999657142558,0.5474413299965666,,False
+M2-Multimodal (CV7+Face),gender,KS-2samp,Male vs Female,0.03161272184309083,0.17642199284363044,0.17642199284363044,False
+M2-Multimodal (CV7+Face),gender,chi2-selection,group x hired,0.9256502863311322,0.3359957520097639,,False
+M2-Multimodal (CV7+Face),ethnicity,KS-2samp,G1 vs G2,0.026297939878240407,0.6266361869602759,1.0,False
+M2-Multimodal (CV7+Face),ethnicity,KS-2samp,G1 vs G3,0.02790181903482396,0.5459437029737877,1.0,False
+M2-Multimodal (CV7+Face),ethnicity,KS-2samp,G2 vs G3,0.015553805676151843,0.9878900453307096,1.0,False
+M2-Multimodal (CV7+Face),ethnicity,Kruskal-Wallis,all groups,1.2415680166104721,0.5375228499735378,,False
+M2-Multimodal (CV7+Face),ethnicity,chi2-selection,group x hired,1.5641596324049027,0.4574536018172667,,False
+M3-Gender-Biased (CV7),gender,KS-2samp,Male vs Female,0.02912410953228293,0.2537987444452562,0.2537987444452562,False
+M3-Gender-Biased (CV7),gender,chi2-selection,group x hired,0.707883991703362,0.40014717159355606,,False
+M3-Gender-Biased (CV7),ethnicity,KS-2samp,G1 vs G2,0.0312970318138389,0.4048036465389566,1.0,False
+M3-Gender-Biased (CV7),ethnicity,KS-2samp,G1 vs G3,0.022651568464376347,0.791861899221244,1.0,False
+M3-Gender-Biased (CV7),ethnicity,KS-2samp,G2 vs G3,0.0171956806537591,0.9670954028764391,1.0,False
+M3-Gender-Biased (CV7),ethnicity,Kruskal-Wallis,all groups,0.9475927042330928,0.6226340377614368,,False
+M3-Gender-Biased (CV7),ethnicity,chi2-selection,group x hired,0.9580325802216031,0.6193923946398772,,False
+M4-Ethnicity-Biased (CV7),gender,KS-2samp,Male vs Female,0.029442067046838043,0.24270091692927528,0.24270091692927528,False
+M4-Ethnicity-Biased (CV7),gender,chi2-selection,group x hired,0.4022723959409846,0.525918024404519,,False
+M4-Ethnicity-Biased (CV7),ethnicity,KS-2samp,G1 vs G2,0.09875674139115466,3.232813078727173e-07,6.465626157454346e-07,True
+M4-Ethnicity-Biased (CV7),ethnicity,KS-2samp,G1 vs G3,0.1412748171368861,1.9078499088846556e-14,5.723549726653967e-14,True
+M4-Ethnicity-Biased (CV7),ethnicity,KS-2samp,G2 vs G3,0.06611623353257035,0.001700546853135028,0.001700546853135028,True
+M4-Ethnicity-Biased (CV7),ethnicity,Kruskal-Wallis,all groups,74.15549703451366,7.894750647739411e-17,,True
+M4-Ethnicity-Biased (CV7),ethnicity,chi2-selection,group x hired,52.44140521376689,4.097260210701035e-12,,True
+M5-Robust (CV9),gender,KS-2samp,Male vs Female,0.0191404866885897,0.7610231802183484,0.7610231802183484,False
+M5-Robust (CV9),gender,chi2-selection,group x hired,0.053827858854278425,0.8165315545158014,,False
+M5-Robust (CV9),ethnicity,KS-2samp,G1 vs G2,0.03109251991819524,0.4128886820658463,1.0,False
+M5-Robust (CV9),ethnicity,KS-2samp,G1 vs G3,0.030473631458853134,0.4328513349080151,1.0,False
+M5-Robust (CV9),ethnicity,KS-2samp,G2 vs G3,0.01929086266977595,0.9184828992563326,1.0,False
+M5-Robust (CV9),ethnicity,Kruskal-Wallis,all groups,1.9406016153562156,0.3789690241638907,,False
+M5-Robust (CV9),ethnicity,chi2-selection,group x hired,2.1282388728216772,0.3450315432531864,,False
+M6-Robust (CV9+Face),gender,KS-2samp,Male vs Female,0.016985981564021032,0.8708454153420848,0.8708454153420848,False
+M6-Robust (CV9+Face),gender,chi2-selection,group x hired,0.06597603735556151,0.797288386323894,,False
+M6-Robust (CV9+Face),ethnicity,KS-2samp,G1 vs G2,0.02665761234335889,0.6095004805059067,1.0,False
+M6-Robust (CV9+Face),ethnicity,KS-2samp,G1 vs G3,0.031296782035698294,0.3995218634971806,1.0,False
+M6-Robust (CV9+Face),ethnicity,KS-2samp,G2 vs G3,0.014890201558067697,0.9926957021210158,1.0,False
+M6-Robust (CV9+Face),ethnicity,Kruskal-Wallis,all groups,1.4196148110507039,0.4917388945356629,,False
+M6-Robust (CV9+Face),ethnicity,chi2-selection,group x hired,1.7863172706292096,0.40936068738589304,,False

@@ -1,0 +1,71 @@
+==========================================================================
+Bio / text arm — does demographic signal leak through language?
+==========================================================================
+  bios train (19200, 2) | test (4800, 2) | blind-label threshold 0.4135
+
+[2/7] Residual gender cues in the BLIND bios (word-boundary counts):
+  wife      present in   247 rows  (gender0=  223, gender1=   24)
+  husband   present in   321 rows  (gender0=   16, gender1=  305)
+  son       present in   158 rows  (gender0=   71, gender1=   87)
+  daughter  present in   173 rows  (gender0=   56, gender1=  117)
+  brother   present in    79 rows  (gender0=   39, gender1=   40)
+  sister    present in    67 rows  (gender0=   20, gender1=   47)
+  mother    present in   170 rows  (gender0=   37, gender1=  133)
+  father    present in   130 rows  (gender0=   92, gender1=   38)
+  ms        present in     1 rows  (gender0=    0, gender1=    1)
+  mr        present in     0 rows  (gender0=    0, gender1=    0)
+  mrs       present in     0 rows  (gender0=    0, gender1=    0)
+  -> most asymmetric residual cues (n > 50; ratio = stronger side / weaker side):
+    husband   n=  321 ratio=  19.1
+    wife      n=  247 ratio=   9.3
+    mother    n=  170 ratio=   3.6
+    father    n=  130 ratio=   2.4
+    sister    n=   67 ratio=   2.4
+
+[3/7] Demographic leakage classifiers (TF-IDF + logistic regression):
+  gender | original bios             n_class=2  acc=0.9975  AUC=1.0000
+  gender | blind bios                n_class=2  acc=0.6452  AUC=0.7091
+  gender | names (control)           n_class=2  acc=0.9165  AUC=0.9711
+  ethnicity | original bios          n_class=3  acc=0.3229  AUC=0.4945
+  ethnicity | blind bios             n_class=3  acc=0.3246  AUC=0.4969
+  ethnicity | names (control)        n_class=3  acc=0.3235  AUC=0.4954
+
+  Top gender-discriminating tokens in the BLIND bios (female-side coefs):
+    women            coef=+7.482
+    husband          coef=+5.377
+    with husband     coef=+3.297
+    children         coef=+3.078
+    woman            coef=+2.937
+    gender           coef=+2.715
+    mother           coef=+2.374
+    breast           coef=+2.109
+    loves            coef=+2.006
+    and husband      coef=+1.959
+    rights           coef=+1.920
+    dental           coef=+1.907
+
+[4/7] Hiring models (blind label, median threshold):
+  M1 (CV7 numeric, re-fitted) acc=0.7929  (frozen audit: 0.793)
+  BioBlind                       acc=0.6692  AUC=0.7142  (vs M1 acc=0.7929)
+  BioOriginal                    acc=0.6725  AUC=0.7130  (vs M1 acc=0.7929)
+
+[5/7] Fairness audit (v2 conventions):
+  BioBlind     gender     DPD=+0.0039 DIR=0.9923 (Male/Female) PASS  EOD=+0.0075 KL=0.0222  KW_p=nan chi2_p=8.08e-01
+  BioBlind     ethnicity  DPD=+0.0344 DIR=0.9347 (G3/G1) PASS  EOD=+0.0102 KL=0.0778  KW_p=1.80e-01 chi2_p=1.28e-01
+  BioOriginal  gender     DPD=+0.0121 DIR=0.9761 (Male/Female) PASS  EOD=+0.0168 KL=0.0401  KW_p=nan chi2_p=4.17e-01
+  BioOriginal  ethnicity  DPD=+0.0436 DIR=0.9170 (G3/G1) PASS  EOD=+0.0315 KL=0.0538  KW_p=1.43e-01 chi2_p=4.03e-02
+
+[6/7] Comparison vs M1-Fair (CV7, numeric) from the frozen audit:
+  model            attr          acc     DPD     DIR     EOD     KL  EEOC
+  BIO-BioBlind     gender      0.669  0.0039  0.9923  0.0075 0.0222  PASS
+  BIO-BioBlind     ethnicity   0.669  0.0344  0.9347  0.0102 0.0778  PASS
+  BIO-BioOriginal  gender      0.672  0.0121  0.9761  0.0168 0.0401  PASS
+  BIO-BioOriginal  ethnicity   0.672  0.0436  0.9170  0.0315 0.0538  PASS
+  M1-Fair (CV7)    gender      0.793  0.0122  0.9747  0.0124 0.0183  PASS
+  M1-Fair (CV7)    ethnicity   0.793  0.0180  0.9631  0.0391 0.0295  PASS
+
+[7/7] Exporting …
+  wrote results/bio_leakage.csv, results/bio_metrics.csv
+  saved results/fig7_bio_leakage.png
+
+Bio/text arm complete. Outputs in results/.
