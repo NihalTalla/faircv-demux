@@ -2,6 +2,8 @@
 
 This repository contains the reproducible audit of the FairCV/FairCVtest automated screening experiment.
 
+**Repository:** https://github.com/NihalTalla/faircv-demux
+
 ## Main deliverables
 
 - `FINAL_REPORT.md` / `FINAL_REPORT.pdf` — final technical audit report (frozen evidence only; all claims machine-verified)
@@ -22,6 +24,16 @@ This repository contains the reproducible audit of the FairCV/FairCVtest automat
 ## Dataset
 
 The original `FairCVdb.npy` dataset is intentionally not committed to Git because of its size.
+
+## Usage
+
+The audit is frozen — the scripts below are committed for transparency and reproducibility, not for re-running experiments.
+
+- **Independent verification** — re-run the two verification passes against the committed result files:
+  - `python verify_final_report.py` (pass 1, metrics-CSV checks)
+  - `python verify_final_report_pass2.py` (pass 2, prose-artifact cross-checks)
+- **PDF export** — regenerate the PDFs from the markdown sources with headless Chrome: `python export_pdf.py FINAL_REPORT.md FINAL_REPORT.pdf` and `python export_pdf.py EXECUTIVE_BRIEF.md EXECUTIVE_BRIEF.pdf`
+- **Full pipeline** — `faircv_audit_v2.py` reproduces the audit from the original `FairCVdb.npy` dataset, which is kept local and not committed to Git.
 
 ## Status
 
